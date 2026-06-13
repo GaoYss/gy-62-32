@@ -1,48 +1,26 @@
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 
-from backend.common.http import error, list_response, ok, parse_json
+from backend.common.crud import make_collection_view, make_detail_view
 
-from .models import EmergencyNotification
-from .services import create_notification, list_notifications, serialize_notification, update_notification
+from .services import NotificationCRUDService
 
 
-@csrf_exempt
-@require_http_methods(["GET", "POST", "OPTIONS"])
-def notifications_collection(request):
-    if request.method == "GET":
-        active = request.GET.get("active")
-        active_value = None if active is None else active.lower() == "true"
-        return list_response(list_notifications(active_value))
-
-    try:
-        notification = create_notification(parse_json(request))
-        notification.full_clean()
-        notification.save()
-        return ok(serialize_notification(notification), status=201)
-    except (ValidationError, IntegrityError, TypeError, ValueError) as exc:
-        return error(str(exc))
+def _notifications_list_params(request):
+    active = request.GET.get("active")
+    active_value = None if active is None else active.lower() == "true"
+    return {"active": active_value}
 
 
-@csrf_exempt
-@require_http_methods(["GET", "PUT", "DELETE", "OPTIONS"])
-def notification_detail(request, pk):
-    notification = get_object_or_404(EmergencyNotification, pk=pk)
+_notification_exceptions = (ValidationError, IntegrityError, TypeError, ValueError)
 
-    if request.method == "GET":
-        return ok(serialize_notification(notification))
+notifications_collection = make_collection_view(
+    NotificationCRUDService,
+    create_exceptions=_notification_exceptions,
+    list_params_extractor=_notifications_list_params,
+)
 
-    if request.method == "DELETE":
-        notification.delete()
-        return ok({"deleted": True})
-
-    try:
-        notification = update_notification(notification, parse_json(request))
-        notification.full_clean()
-        notification.save()
-        return ok(serialize_notification(notification))
-    except (ValidationError, IntegrityError, TypeError, ValueError) as exc:
-        return error(str(exc))
+notification_detail = make_detail_view(
+    NotificationCRUDService,
+    update_exceptions=_notification_exceptions,
+)

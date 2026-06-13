@@ -1,52 +1,56 @@
+from backend.common.crud import BaseCRUDService
+
 from .models import Resident
 
 
-FIELDS = [
-    "id",
-    "name",
-    "gender",
-    "age",
-    "room_number",
-    "care_level",
-    "emergency_contact",
-    "emergency_phone",
-    "medical_notes",
-    "created_at",
-    "updated_at",
-]
+class ResidentCRUDService(BaseCRUDService):
+    model = Resident
+    write_fields = [
+        "name",
+        "gender",
+        "age",
+        "room_number",
+        "care_level",
+        "emergency_contact",
+        "emergency_phone",
+        "medical_notes",
+    ]
+    serialize_fields = [
+        "id",
+        "name",
+        "gender",
+        "age",
+        "room_number",
+        "care_level",
+        "emergency_contact",
+        "emergency_phone",
+        "medical_notes",
+        "created_at",
+        "updated_at",
+    ]
+    exclude_on_create = {"id", "created_at", "updated_at"}
+    exclude_on_update = {"id", "created_at", "updated_at"}
+
+
+_service = ResidentCRUDService()
 
 
 def serialize_resident(resident):
-    return {
-        "id": resident.id,
-        "name": resident.name,
-        "gender": resident.gender,
-        "age": resident.age,
-        "room_number": resident.room_number,
-        "care_level": resident.care_level,
-        "emergency_contact": resident.emergency_contact,
-        "emergency_phone": resident.emergency_phone,
-        "medical_notes": resident.medical_notes,
-        "created_at": resident.created_at.isoformat(),
-        "updated_at": resident.updated_at.isoformat(),
-    }
+    return _service.serialize(resident)
 
 
 def list_residents():
-    return [serialize_resident(item) for item in Resident.objects.all()]
+    return _service.list()
 
 
 def create_resident(payload):
-    data = {field: payload.get(field) for field in FIELDS if field in payload}
-    data.pop("id", None)
-    data.pop("created_at", None)
-    data.pop("updated_at", None)
-    return Resident(**data)
+    return _service.build_instance(payload)
 
 
 def update_resident(resident, payload):
-    for field in FIELDS:
-        if field not in {"id", "created_at", "updated_at"} and field in payload:
-            setattr(resident, field, payload[field])
+    data = _service.normalize_payload(payload)
+    for field, value in data.items():
+        if field not in _service.exclude_on_update:
+            setattr(resident, field, value)
     resident.save()
     return resident

@@ -1,66 +1,84 @@
 from django.utils.dateparse import parse_datetime
 
+from backend.common.crud import BaseCRUDService
 from backend.residents.models import Resident
 from backend.residents.services import serialize_resident
 
 from .models import Appointment
 
 
-WRITE_FIELDS = [
-    "resident",
-    "resident_id",
-    "family_name",
-    "family_phone",
-    "relationship",
-    "visit_time",
-    "visitor_count",
-    "status",
-    "notes",
-]
+class AppointmentCRUDService(BaseCRUDService):
+    model = Appointment
+    write_fields = [
+        "resident",
+        "resident_id",
+        "family_name",
+        "family_phone",
+        "relationship",
+        "visit_time",
+        "visitor_count",
+        "status",
+        "notes",
+    ]
+    serialize_fields = [
+        "id",
+        "resident",
+        "resident_id",
+        "family_name",
+        "family_phone",
+        "relationship",
+        "visit_time",
+        "visitor_count",
+        "status",
+        "notes",
+        "created_at",
+        "updated_at",
+    ]
+    exclude_on_create = {"resident", "id", "created_at", "updated_at"}
+    exclude_on_update = {"resident", "id", "created_at", "updated_at"}
+    select_related = ["resident"]
+    relation_fields = {
+        "resident": {"serializer": serialize_resident, "id_field": "resident_id"},
+    }
+
+    def filter_queryset(self, queryset, params):
+        status = params.get("status")
+        if status:
+            queryset = queryset.filter(status=status)
+        return queryset
+
+    def normalize_payload(self, payload):
+        data = {field: payload.get(field) for field in self.write_fields if field in payload}
+        if "resident" in data:
+            data["resident_id"] = data.pop("resident")
+        if "visit_time" in data and isinstance(data["visit_time"], str):
+            data["visit_time"] = parse_datetime(data["visit_time"])
+        return data
+
+    def validate_related(self, data):
+        if "resident_id" in data:
+            Resident.objects.get(pk=data["resident_id"])
+
+
+_service = AppointmentCRUDService()
 
 
 def serialize_appointment(appointment):
-    return {
-        "id": appointment.id,
-        "resident": serialize_resident(appointment.resident),
-        "resident_id": appointment.resident_id,
-        "family_name": appointment.family_name,
-        "family_phone": appointment.family_phone,
-        "relationship": appointment.relationship,
-        "visit_time": appointment.visit_time.isoformat(),
-        "visitor_count": appointment.visitor_count,
-        "status": appointment.status,
-        "notes": appointment.notes,
-        "created_at": appointment.created_at.isoformat(),
-        "updated_at": appointment.updated_at.isoformat(),
-    }
-
-
-def normalize_payload(payload):
-    data = {field: payload.get(field) for field in WRITE_FIELDS if field in payload}
-    if "resident" in data:
-        data["resident_id"] = data.pop("resident")
-    if "visit_time" in data and isinstance(data["visit_time"], str):
-        data["visit_time"] = parse_datetime(data["visit_time"])
-    return data
+    return _service.serialize(appointment)
 
 
 def list_appointments(status=None):
-    queryset = Appointment.objects.select_related("resident")
-    if status:
-        queryset = queryset.filter(status=status)
-    return [serialize_appointment(item) for item in queryset]
+    return _service.list({"status": status} if status else {})
 
 
 def create_appointment(payload):
-    data = normalize_payload(payload)
-    Resident.objects.get(pk=data["resident_id"])
-    return Appointment(**data)
+    return _service.build_instance(payload)
 
 
 def update_appointment(appointment, payload):
-    data = normalize_payload(payload)
+    data = _service.normalize_payload(payload)
     for field, value in data.items():
-        setattr(appointment, field, value)
+        if field not in _service.exclude_on_update:
+            setattr(appointment, field, value)
     appointment.save()
     return appointment

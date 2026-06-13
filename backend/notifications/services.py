@@ -1,37 +1,50 @@
+from backend.common.crud import BaseCRUDService
+
 from .models import EmergencyNotification
 
 
-FIELDS = ["title", "content", "level", "target_group", "is_active"]
+class NotificationCRUDService(BaseCRUDService):
+    model = EmergencyNotification
+    write_fields = ["title", "content", "level", "target_group", "is_active"]
+    serialize_fields = [
+        "id",
+        "title",
+        "content",
+        "level",
+        "target_group",
+        "is_active",
+        "published_at",
+        "updated_at",
+    ]
+    exclude_on_create = {"id", "published_at", "updated_at"}
+    exclude_on_update = {"id", "published_at", "updated_at"}
+
+    def filter_queryset(self, queryset, params):
+        active = params.get("active")
+        if active is not None:
+            queryset = queryset.filter(is_active=active)
+        return queryset
+
+
+_service = NotificationCRUDService()
 
 
 def serialize_notification(notification):
-    return {
-        "id": notification.id,
-        "title": notification.title,
-        "content": notification.content,
-        "level": notification.level,
-        "target_group": notification.target_group,
-        "is_active": notification.is_active,
-        "published_at": notification.published_at.isoformat(),
-        "updated_at": notification.updated_at.isoformat(),
-    }
+    return _service.serialize(notification)
 
 
 def list_notifications(active=None):
-    queryset = EmergencyNotification.objects.all()
-    if active is not None:
-        queryset = queryset.filter(is_active=active)
-    return [serialize_notification(item) for item in queryset]
+    return _service.list({"active": active})
 
 
 def create_notification(payload):
-    data = {field: payload.get(field) for field in FIELDS if field in payload}
-    return EmergencyNotification(**data)
+    return _service.build_instance(payload)
 
 
 def update_notification(notification, payload):
-    for field in FIELDS:
-        if field in payload:
-            setattr(notification, field, payload[field])
+    data = _service.normalize_payload(payload)
+    for field, value in data.items():
+        if field not in _service.exclude_on_update:
+            setattr(notification, field, value)
     notification.save()
     return notification
