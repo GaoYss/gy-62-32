@@ -44,13 +44,8 @@ def list_residents():
 
 
 def create_resident(payload):
-    return _service.build_instance(payload)
+    return _service.create(payload)
 
 
 def update_resident(resident, payload):
-    data = _service.normalize_payload(payload)
-    for field, value in data.items():
-        if field not in _service.exclude_on_update:
-            setattr(resident, field, value)
-    resident.save()
-    return resident
+    return _service.update(resident, payload)

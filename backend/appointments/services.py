@@ -72,13 +72,8 @@ def list_appointments(status=None):
 
 
 def create_appointment(payload):
-    return _service.build_instance(payload)
+    return _service.create(payload)
 
 
 def update_appointment(appointment, payload):
-    data = _service.normalize_payload(payload)
-    for field, value in data.items():
-        if field not in _service.exclude_on_update:
-            setattr(appointment, field, value)
-    appointment.save()
-    return appointment
+    return _service.update(appointment, payload)

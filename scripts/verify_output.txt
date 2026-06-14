@@ -1,0 +1,39 @@
+﻿python : D:\python12\Lib\site-packages\django\db\models\fields\__init__.py:1670: RuntimeWar
+ning: DateTimeField Appointment.visit_time received a naive datetime (2026-07-01 10:00:00) 
+while time zone support is active.
+所在位置 行:1 字符: 70
++ ... solo_dog_11_32\gy-62 ; python .\scripts\verify_compat.py 2>&1 | Out-F ...
++                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\python12\Lib...port is active.:String) [], 
+    RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  warnings.warn(
+D:\python12\Lib\site-packages\django\db\models\fields\__init__.py:1670: RuntimeWarning: Dat
+eTimeField VisitRecord.check_in_time received a naive datetime (2026-07-01 10:05:00) while 
+time zone support is active.
+  warnings.warn(
+=== Checking Residents ===
+  serialize_resident: OK
+  list_residents count: OK (10 items)
+=== Checking Notifications ===
+  serialize_notification: OK
+  list_notifications(active=None): OK (1 items)
+  list_notifications(active=True): OK (1 items)
+  list_notifications(active=False): OK (0 items)
+=== Checking Appointments ===
+  serialize_appointment: OK
+  list_appointments(status=None): OK (10 items)
+  list_appointments(status='pending'): OK (0 items)
+  list_appointments(status='approved'): OK (2 items)
+=== Checking Visits ===
+  serialize_visit: OK
+  list_visits count: OK (6 items)
+=== Checking Create/Update Compatibility ===
+  create_resident returns saved instance, id=15, name=测试老人
+  update_resident result: name=更新老人, room=T-999
+  create/update delegate to service.create/service.update: OK
+=== Checking Visits Side-Effect ===
+  create_visit side-effect: apt status = completed (OK)
+
+==> ALL CHECKS PASSED

@@ -38,13 +38,8 @@ def list_notifications(active=None):
 
 
 def create_notification(payload):
-    return _service.build_instance(payload)
+    return _service.create(payload)
 
 
 def update_notification(notification, payload):
-    data = _service.normalize_payload(payload)
-    for field, value in data.items():
-        if field not in _service.exclude_on_update:
-            setattr(notification, field, value)
-    notification.save()
-    return notification
+    return _service.update(notification, payload)

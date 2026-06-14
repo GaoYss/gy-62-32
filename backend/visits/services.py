@@ -85,13 +85,8 @@ def list_visits():
 
 
 def create_visit(payload):
-    return _service.build_instance(payload)
+    return _service.create(payload)
 
 
 def update_visit(record, payload):
-    data = _service.normalize_payload(payload)
-    for field, value in data.items():
-        if field not in _service.exclude_on_update:
-            setattr(record, field, value)
-    record.save()
-    return record
+    return _service.update(record, payload)
