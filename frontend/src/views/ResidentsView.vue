@@ -44,7 +44,7 @@ import { onMounted, reactive, ref } from 'vue'
 import EmptyState from '../components/EmptyState.vue'
 import PageHeader from '../components/PageHeader.vue'
 import ResidentForm from '../components/ResidentForm.vue'
-import { residentsApi } from '../services/residents'
+import { residentsApi } from '../services/api'
 
 const residents = ref([])
 const message = ref('')

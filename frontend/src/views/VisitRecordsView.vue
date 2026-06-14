@@ -46,8 +46,7 @@ import { onMounted, reactive, ref } from 'vue'
 import EmptyState from '../components/EmptyState.vue'
 import PageHeader from '../components/PageHeader.vue'
 import VisitRecordForm from '../components/VisitRecordForm.vue'
-import { appointmentsApi } from '../services/appointments'
-import { visitsApi } from '../services/visits'
+import { appointmentsApi, visitsApi } from '../services/api'
 
 const visits = ref([])
 const appointments = ref([])

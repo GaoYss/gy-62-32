@@ -34,7 +34,7 @@ import { onMounted, reactive, ref } from 'vue'
 import EmptyState from '../components/EmptyState.vue'
 import NotificationForm from '../components/NotificationForm.vue'
 import PageHeader from '../components/PageHeader.vue'
-import { notificationsApi } from '../services/notifications'
+import { notificationsApi } from '../services/api'
 
 const notifications = ref([])
 const message = ref('')

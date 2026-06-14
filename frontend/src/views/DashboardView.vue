@@ -61,9 +61,7 @@
 import { computed, onMounted, ref } from 'vue'
 import EmptyState from '../components/EmptyState.vue'
 import PageHeader from '../components/PageHeader.vue'
-import { appointmentsApi } from '../services/appointments'
-import { notificationsApi } from '../services/notifications'
-import { residentsApi } from '../services/residents'
+import { appointmentsApi, notificationsApi, residentsApi } from '../services/api'
 
 const residents = ref([])
 const appointments = ref([])
